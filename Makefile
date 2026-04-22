@@ -1,7 +1,7 @@
 # Itential Dev Stack
 # run 'make help' to see available commands
 
-.PHONY: help setup up down logs status certs login clean generate-key
+.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter
 
 .DEFAULT_GOAL := help
 
@@ -23,6 +23,7 @@ MONGO_PORT ?= 27017
 REDIS_PORT ?= 6379
 LDAP_PORT ?= 3389
 MCP_SSE_PORT ?= 8000
+NETBOX_PORT ?= 8002
 OPENBAO_PORT ?= 8200
 
 # build profile list based on enabled services
@@ -39,6 +40,9 @@ ifeq ($(LDAP_ENABLED),true)
 endif
 ifeq ($(MCP_ENABLED),true)
   PROFILES += --profile mcp
+endif
+ifeq ($(NETBOX_ENABLED),true)
+  PROFILES += --profile netbox
 endif
 ifeq ($(OPENBAO_ENABLED),true)
   PROFILES += --profile openbao
@@ -69,7 +73,7 @@ logs: ## Follow logs (all services, or: make logs LOG=platform)
 
 status: ## Show service status and URLs
 	@echo ""
-	@docker compose --profile full --profile ldap --profile mcp --profile openbao ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+	@docker compose --profile full --profile ldap --profile mcp --profile netbox --profile openbao ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 	@echo ""
 	@echo "URLs:"
 	@echo "  Platform:  http://localhost:$(PLATFORM_PORT)  (admin/admin)"
@@ -87,6 +91,9 @@ status: ## Show service status and URLs
 	fi
 	@if docker ps --format '{{.Names}}' | grep -q '^mcp$$'; then \
 		echo "  MCP:       http://localhost:$(MCP_SSE_PORT)  (SSE transport)"; \
+	fi
+	@if docker ps --format '{{.Names}}' | grep -q '^netbox$$'; then \
+		echo "  NetBox:    http://localhost:$(NETBOX_PORT)  (admin/admin, API token: 0123456789abcdef0123456789abcdef01234567)"; \
 	fi
 	@if docker ps --format '{{.Names}}' | grep -q '^openbao$$'; then \
 		TOKEN=$$(cat volumes/openbao/init-keys.json 2>/dev/null | jq -r '.root_token // "see init-keys.json"'); \
@@ -107,7 +114,7 @@ clean: ## Stop services and remove data (destructive)
 	@echo "WARNING: This will delete all container data."
 	@echo "Press Ctrl+C within 3 seconds to cancel..."
 	@sleep 3
-	@docker compose --profile full --profile ldap --profile mcp --profile openbao down -v
+	@docker compose --profile full --profile ldap --profile mcp --profile netbox --profile openbao down -v
 	@docker rm -f $$(docker ps -aq --filter "ancestor=ghcr.io/itential/itential-mcp") 2>/dev/null || true
 	@docker volume rm itential-dev-stack_gateway5-data 2>/dev/null || true
 	@docker volume rm itential-dev-stack_openbao-data 2>/dev/null || true
@@ -121,3 +128,13 @@ clean: ## Stop services and remove data (destructive)
 
 generate-key: ## Generate a new 64-character encryption key
 	@openssl rand -hex 32
+
+netbox-adapter: ## Clone and install the NetBox adapter into Platform (requires node/npm)
+	@mkdir -p volumes/platform/adapters
+	@if [ -d volumes/platform/adapters/adapter-netbox ]; then \
+		echo "adapter-netbox already exists, skipping clone"; \
+	else \
+		cd volumes/platform/adapters && git clone https://gitlab.com/itentialopensource/adapters/adapter-netbox.git; \
+	fi
+	@cd volumes/platform/adapters/adapter-netbox && npm install
+	@echo "NetBox adapter installed. Restart platform to load: make down && make up"

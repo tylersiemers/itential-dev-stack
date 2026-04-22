@@ -56,7 +56,7 @@ services:
   redis:
     container_name: redis
     image: redis:${REDIS_VERSION:-7.4}
-    profiles: ["deps", "platform", "full"]
+    profiles: ["deps", "platform", "full", "netbox"]
     ports:
       - "${BIND_ADDRESS}${REDIS_PORT:-6379}:6379"
     healthcheck:
@@ -323,6 +323,86 @@ services:
     restart: unless-stopped
 
   # ==========================================================================
+  # NETBOX (IPAM / Network Source of Truth)
+  # ==========================================================================
+
+  netbox-postgres:
+    container_name: netbox-postgres
+    image: postgres:16
+    profiles: ["netbox"]
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: netbox
+    volumes:
+      - netbox-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbox"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  netbox:
+    container_name: netbox
+    image: netboxcommunity/netbox:${NETBOX_VERSION:-v4.2}
+    profiles: ["netbox"]
+    depends_on:
+      netbox-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS}${NETBOX_PORT:-8002}:8080"
+    environment:
+      DB_HOST: netbox-postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 2
+      REDIS_CACHE_HOST: redis
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_DATABASE: 3
+      SECRET_KEY: ${NETBOX_SECRET_KEY:-insecure-dev-secret-key-do-not-use-in-production-abc123}
+      ALLOWED_HOSTS: "*"
+      SUPERUSER_NAME: admin
+      SUPERUSER_EMAIL: admin@itential.local
+      SUPERUSER_PASSWORD: admin
+      SUPERUSER_API_TOKEN: 0123456789abcdef0123456789abcdef01234567
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/ > /dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+
+  netbox-worker:
+    container_name: netbox-worker
+    image: netboxcommunity/netbox:${NETBOX_VERSION:-v4.2}
+    profiles: ["netbox"]
+    depends_on:
+      netbox:
+        condition: service_healthy
+    command: /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py rqworker
+    environment:
+      DB_HOST: netbox-postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 2
+      REDIS_CACHE_HOST: redis
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_DATABASE: 3
+      SECRET_KEY: ${NETBOX_SECRET_KEY:-insecure-dev-secret-key-do-not-use-in-production-abc123}
+    restart: unless-stopped
+
+  # ==========================================================================
   # MCP SERVER
   # ==========================================================================
 
@@ -414,6 +494,8 @@ volumes:
   gateway4-data:
     driver: local
   gateway5-data:
+    driver: local
+  netbox-db:
     driver: local
   openbao-data:
     driver: local

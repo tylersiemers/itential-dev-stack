@@ -54,8 +54,15 @@ else
 fi
 
 make_role() {
-    local id=$(get_id "dcim/device-roles" "slug=$2")
-    [ -z "$id" ] && id=$(api_post "dcim/device-roles" "{\"name\":\"$1\",\"slug\":\"$2\",\"color\":\"$3\"}" | jq -r '.id') && log_info "Created role: $1 (id=$id)"
+    local name=$1 slug=$2 color=$3
+    local id
+    id=$(get_id "dcim/device-roles" "slug=$slug")
+    if [ -z "$id" ]; then
+        id=$(api_post "dcim/device-roles" "{\"name\":\"$name\",\"slug\":\"$slug\",\"color\":\"$color\"}" | jq -r '.id')
+        echo -e "${GREEN}[INFO]${NC} Created role: $name (id=$id)" >&2
+    else
+        echo -e "${GREEN}[INFO]${NC} Role exists: $name (id=$id)" >&2
+    fi
     echo "$id"
 }
 

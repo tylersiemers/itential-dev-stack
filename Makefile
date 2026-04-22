@@ -1,7 +1,7 @@
 # Itential Dev Stack
 # run 'make help' to see available commands
 
-.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter
+.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter netbox-seed netbox-seed-devices netbox-seed-vlans netbox-seed-ips
 
 .DEFAULT_GOAL := help
 
@@ -128,6 +128,20 @@ clean: ## Stop services and remove data (destructive)
 
 generate-key: ## Generate a new 64-character encryption key
 	@openssl rand -hex 32
+
+netbox-seed: ## Seed NetBox with devices, VLANs, and IPs (runs all three)
+	@$(MAKE) --no-print-directory netbox-seed-devices
+	@$(MAKE) --no-print-directory netbox-seed-vlans
+	@$(MAKE) --no-print-directory netbox-seed-ips
+
+netbox-seed-devices: ## Seed NetBox with 25 devices (10 servers, 10 switches, 5 routers)
+	@./scripts/netbox-seed-devices.sh
+
+netbox-seed-vlans: ## Seed NetBox with 10 VLANs
+	@./scripts/netbox-seed-vlans.sh
+
+netbox-seed-ips: ## Seed NetBox with a management IP for each device
+	@./scripts/netbox-seed-ips.sh
 
 netbox-adapter: ## Clone and install the NetBox adapter into Platform (requires node/npm)
 	@mkdir -p volumes/platform/adapters

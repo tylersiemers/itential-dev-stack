@@ -40,8 +40,8 @@ LDAP_ENABLED=true
 
 ```bash
 # AWS ECR (default — requires: make login)
-PLATFORM_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-platform-config-lcm:6
-GATEWAY5_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-gateway5:5.1.0-amd64
+PLATFORM_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-platform-config-lcm:6.3.4
+GATEWAY5_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-gateway5:5.3.2-amd64
 
 # JFrog (requires: docker login itential.jfrog.io)
 PLATFORM_IMAGE=itential.jfrog.io/flowai/itential_flowai:v0.0.6
@@ -148,9 +148,9 @@ Image defaults are in `defaults.env` (version-controlled) and point to AWS ECR. 
 **AWS ECR** (default):
 ```bash
 # Requires: make login (or AWS CLI configured with ECR access)
-PLATFORM_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-platform-config-lcm:6
+PLATFORM_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-platform-config-lcm:6.3.4
 GATEWAY4_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-gateway:4.3.7
-GATEWAY5_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-gateway5:5.1.0-amd64
+GATEWAY5_IMAGE=497639811223.dkr.ecr.us-east-2.amazonaws.com/automation-gateway5:5.3.2-amd64
 ```
 
 **JFrog**:

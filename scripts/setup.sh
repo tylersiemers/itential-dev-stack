@@ -210,6 +210,10 @@ if [ "$MCP_ENABLED" = "true" ]; then
     PROFILES="$PROFILES --profile mcp"
     log_info "MCP enabled"
 fi
+if [ "$NETBOX_ENABLED" = "true" ]; then
+    PROFILES="$PROFILES --profile netbox"
+    log_info "NetBox enabled"
+fi
 if [ "$OPENBAO_ENABLED" = "true" ]; then
     PROFILES="$PROFILES --profile openbao"
     log_info "OpenBao enabled"
@@ -320,6 +324,13 @@ fi
 if [ "$MCP_ENABLED" = "true" ]; then
     echo "  MCP:       http://localhost:${MCP_SSE_PORT:-8000} (SSE transport)"
     echo "             See: https://github.com/itential/itential-mcp"
+    echo ""
+fi
+if [ "$NETBOX_ENABLED" = "true" ]; then
+    echo "  NetBox:    http://localhost:${NETBOX_PORT:-8002}"
+    echo "             Username: admin"
+    echo "             Password: admin"
+    echo "             API token: 0123456789abcdef0123456789abcdef01234567"
     echo ""
 fi
 if [ "$OPENBAO_ENABLED" = "true" ]; then

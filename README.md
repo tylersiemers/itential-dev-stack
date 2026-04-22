@@ -32,6 +32,7 @@ STACK_PROFILE=platform
 GATEWAY5_ENABLED=true
 LDAP_ENABLED=true
 # MCP_ENABLED=true
+# NETBOX_ENABLED=true
 # OPENBAO_ENABLED=true
 ```
 
@@ -84,6 +85,7 @@ The profile system has two layers that let you run exactly what you need:
 | `GATEWAY5_ENABLED=true` | Automation Gateway 5 |
 | `LDAP_ENABLED=true` | OpenLDAP |
 | `MCP_ENABLED=true` | MCP Server (LLM integration) |
+| `NETBOX_ENABLED=true` | NetBox (IPAM / network source of truth) |
 | `OPENBAO_ENABLED=true` | OpenBao (secrets management) |
 
 ### Examples
@@ -124,6 +126,7 @@ docker compose --profile full --profile openbao up -d
 | Redis | localhost:6379 | N/A |
 | OpenLDAP | localhost:3389 | cn=admin,dc=itential,dc=io / admin |
 | MCP | http://localhost:8000 (SSE) | N/A |
+| NetBox | http://localhost:8002 | admin / admin |
 | OpenBao | http://localhost:8200 | Token from `volumes/openbao/init-keys.json` |
 
 > All ports are configurable via `.env` — see [Port Configuration](#port-configuration).
@@ -173,6 +176,7 @@ Override in `.env` if defaults conflict with existing services on your machine:
 | `GATEWAY5_PORT` | Automation Gateway 5 (gRPC) | `50051` |
 | `LDAP_PORT` | OpenLDAP | `3389` |
 | `MCP_SSE_PORT` | MCP Server | `8000` |
+| `NETBOX_PORT` | NetBox | `8002` |
 | `OPENBAO_PORT` | OpenBao | `8200` |
 
 ### Platform UID/GID
@@ -209,6 +213,7 @@ Different platform images may run as different UIDs. The init container sets log
 | `make login` | Login to AWS ECR |
 | `make clean` | Stop and remove all data (destructive) |
 | `make generate-key` | Generate new encryption key |
+| `make netbox-adapter` | Clone and install the NetBox adapter (requires npm) |
 
 ## 🔑 LDAP Authentication
 
@@ -293,6 +298,36 @@ If OpenBao is sealed after restart: `./scripts/configure-openbao.sh`
 </details>
 
 For detailed usage, see [docs/openbao](docs/openbao/).
+
+## 📦 NetBox (IPAM / Network Source of Truth)
+
+[NetBox](https://netbox.dev/) is an open-source IPAM and DCIM tool for modeling IP space, devices, and network infrastructure.
+
+**Enable**: Set `NETBOX_ENABLED=true` in `.env`, then `make up`.
+
+```bash
+NETBOX_ENABLED=true
+```
+
+NetBox starts with three containers — the app, a background worker, and a dedicated PostgreSQL database. It shares the stack's Redis instance (using databases 2 and 3 to avoid conflicts). First boot takes ~90 seconds while migrations run.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NETBOX_VERSION` | NetBox image tag | `v4.2` |
+| `NETBOX_PORT` | Host port for NetBox UI | `8002` |
+| `NETBOX_SECRET_KEY` | Django secret key | insecure dev default |
+
+**Credentials**: `admin` / `admin`
+**API token**: `0123456789abcdef0123456789abcdef01234567`
+
+**Install the Itential adapter** (requires `npm`):
+
+```bash
+make netbox-adapter
+make down && make up   # Restart Platform to load the adapter
+```
+
+Find the adapter at [Itential Automation Marketplace](https://www.itential.com/automation-marketplace/).
 
 ## 🔑 Gateway5 / Gateway Manager
 

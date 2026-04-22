@@ -376,8 +376,8 @@ services:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/ > /dev/null"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 90s
+      retries: 10
+      start_period: 180s
     restart: unless-stopped
 
   netbox-worker:

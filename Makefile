@@ -1,7 +1,7 @@
 # Itential Dev Stack
 # run 'make help' to see available commands
 
-.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter netbox-seed netbox-seed-devices netbox-seed-vlans netbox-seed-ips
+.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter netbox-seed netbox-seed-devices netbox-seed-vlans netbox-seed-ips hello-torero
 
 .DEFAULT_GOAL := help
 
@@ -128,6 +128,25 @@ clean: ## Stop services and remove data (destructive)
 
 generate-key: ## Generate a new 64-character encryption key
 	@openssl rand -hex 32
+
+hello-torero: ## Clone hello-torero and import services via iagctl
+	@if ! command -v iagctl &>/dev/null; then \
+		echo ""; \
+		echo "WARNING: iagctl is not installed or not in PATH."; \
+		echo "         Install from: https://github.com/torerodev/torero/releases"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@mkdir -p repos
+	@if [ ! -d repos/hello-torero ]; then \
+		echo "Cloning hello-torero..."; \
+		git clone https://github.com/torerodev/hello-torero.git repos/hello-torero; \
+	else \
+		echo "hello-torero already cloned, pulling latest..."; \
+		git -C repos/hello-torero pull; \
+	fi
+	@echo "Importing services..."
+	@cd repos/hello-torero && iagctl db import import.yml
 
 netbox-seed: ## Seed NetBox with devices, VLANs, and IPs (runs all three)
 	@$(MAKE) --no-print-directory netbox-seed-devices

@@ -146,7 +146,7 @@ hello-torero: ## Clone hello-torero and import services via iagctl
 		git -C repos/hello-torero pull; \
 	fi
 	@echo "Importing services..."
-	@cd repos/hello-torero && iagctl db import import.yml
+	@cd repos/hello-torero && iagctl db import import.yml --host localhost --port $(GATEWAY5_PORT)
 
 netbox-seed: ## Seed NetBox with devices, VLANs, and IPs (runs all three)
 	@$(MAKE) --no-print-directory netbox-seed-devices

@@ -210,6 +210,10 @@ if [ "$MCP_ENABLED" = "true" ]; then
     PROFILES="$PROFILES --profile mcp"
     log_info "MCP enabled"
 fi
+if [ "$IAGCTL_CLIENT_ENABLED" = "true" ]; then
+    PROFILES="$PROFILES --profile iagctl-client"
+    log_info "iagctl client enabled"
+fi
 if [ "$NETBOX_ENABLED" = "true" ]; then
     PROFILES="$PROFILES --profile netbox"
     log_info "NetBox enabled"

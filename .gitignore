@@ -25,6 +25,9 @@
 # gw4 playbooks - .gitkeep tracked, example playbooks tracked
 # user-added playbooks should be added to .gitignore manually if needed
 
+/volumes/iagctl-client/*
+!/volumes/iagctl-client/.gitkeep
+
 /volumes/platform/adapters/*
 !/volumes/platform/adapters/.gitkeep
 

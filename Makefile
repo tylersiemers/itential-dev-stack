@@ -1,7 +1,7 @@
 # Itential Dev Stack
 # run 'make help' to see available commands
 
-.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter netbox-seed netbox-seed-devices netbox-seed-vlans netbox-seed-ips hello-torero
+.PHONY: help setup up down logs status certs login clean generate-key netbox-adapter netbox-seed netbox-seed-devices netbox-seed-vlans netbox-seed-ips hello-torero iagctl-shell
 
 .DEFAULT_GOAL := help
 
@@ -41,6 +41,9 @@ endif
 ifeq ($(MCP_ENABLED),true)
   PROFILES += --profile mcp
 endif
+ifeq ($(IAGCTL_CLIENT_ENABLED),true)
+  PROFILES += --profile iagctl-client
+endif
 ifeq ($(NETBOX_ENABLED),true)
   PROFILES += --profile netbox
 endif
@@ -73,7 +76,7 @@ logs: ## Follow logs (all services, or: make logs LOG=platform)
 
 status: ## Show service status and URLs
 	@echo ""
-	@docker compose --profile full --profile ldap --profile mcp --profile netbox --profile openbao ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+	@docker compose --profile full --profile ldap --profile mcp --profile iagctl-client --profile netbox --profile openbao ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 	@echo ""
 	@echo "URLs:"
 	@echo "  Platform:  http://localhost:$(PLATFORM_PORT)  (admin/admin)"
@@ -114,7 +117,7 @@ clean: ## Stop services and remove data (destructive)
 	@echo "WARNING: This will delete all container data."
 	@echo "Press Ctrl+C within 3 seconds to cancel..."
 	@sleep 3
-	@docker compose --profile full --profile ldap --profile mcp --profile netbox --profile openbao down -v
+	@docker compose --profile full --profile ldap --profile mcp --profile iagctl-client --profile netbox --profile openbao down -v
 	@docker rm -f $$(docker ps -aq --filter "ancestor=ghcr.io/itential/itential-mcp") 2>/dev/null || true
 	@docker volume rm itential-dev-stack_gateway5-data 2>/dev/null || true
 	@docker volume rm itential-dev-stack_openbao-data 2>/dev/null || true
@@ -128,6 +131,9 @@ clean: ## Stop services and remove data (destructive)
 
 generate-key: ## Generate a new 64-character encryption key
 	@openssl rand -hex 32
+
+iagctl-shell: ## Open a shell in the iagctl client container
+	@docker exec -it iagctl-client sh
 
 hello-torero: ## Clone hello-torero and import services via iagctl
 	@if ! command -v iagctl &>/dev/null; then \

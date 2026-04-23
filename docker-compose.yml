@@ -323,6 +323,28 @@ services:
     restart: unless-stopped
 
   # ==========================================================================
+  # IAGCTL CLIENT
+  # ==========================================================================
+
+  iagctl-client:
+    container_name: iagctl-client
+    image: alpine:latest
+    profiles: ["iagctl-client"]
+    volumes:
+      - type: bind
+        source: ./volumes/iagctl-client
+        target: /workspace
+    environment:
+      # adds /workspace to PATH so iagctl binary is available by name
+      PATH: "/workspace:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      # gateway5 connection defaults (override in .env)
+      GATEWAY5_HOST: gateway5
+      GATEWAY5_PORT: ${GATEWAY5_PORT:-50051}
+    working_dir: /workspace
+    command: ["sleep", "infinity"]
+    restart: unless-stopped
+
+  # ==========================================================================
   # NETBOX (IPAM / Network Source of Truth)
   # ==========================================================================
 

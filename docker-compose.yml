@@ -355,7 +355,7 @@ services:
     environment:
       POSTGRES_DB: netbox
       POSTGRES_USER: netbox
-      POSTGRES_PASSWORD: netbox
+      POSTGRES_PASSWORD: ${NETBOX_DB_PASSWORD:-netbox}
     volumes:
       - netbox-db:/var/lib/postgresql/data
     healthcheck:
@@ -381,7 +381,7 @@ services:
       DB_HOST: netbox-postgres
       DB_NAME: netbox
       DB_USER: netbox
-      DB_PASSWORD: netbox
+      DB_PASSWORD: ${NETBOX_DB_PASSWORD:-netbox}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DATABASE: 2
@@ -392,8 +392,8 @@ services:
       ALLOWED_HOSTS: "*"
       SUPERUSER_NAME: admin
       SUPERUSER_EMAIL: admin@itential.local
-      SUPERUSER_PASSWORD: admin
-      SUPERUSER_API_TOKEN: 0123456789abcdef0123456789abcdef01234567
+      SUPERUSER_PASSWORD: ${NETBOX_SUPERUSER_PASSWORD:-admin}
+      SUPERUSER_API_TOKEN: ${NETBOX_API_TOKEN:-0123456789abcdef0123456789abcdef01234567}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/login/ > /dev/null"]
       interval: 30s
@@ -414,7 +414,7 @@ services:
       DB_HOST: netbox-postgres
       DB_NAME: netbox
       DB_USER: netbox
-      DB_PASSWORD: netbox
+      DB_PASSWORD: ${NETBOX_DB_PASSWORD:-netbox}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DATABASE: 2

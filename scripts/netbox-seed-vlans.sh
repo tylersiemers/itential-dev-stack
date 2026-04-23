@@ -9,7 +9,7 @@ source "$PROJECT_ROOT/defaults.env"
 [ -f "$PROJECT_ROOT/.env" ] && source "$PROJECT_ROOT/.env"
 
 NETBOX_URL="http://localhost:${NETBOX_PORT:-8002}"
-TOKEN="0123456789abcdef0123456789abcdef01234567"
+TOKEN="${NETBOX_API_TOKEN:-0123456789abcdef0123456789abcdef01234567}"
 
 GREEN='\033[0;32m'; BLUE='\033[0;34m'; NC='\033[0m'
 log_info()    { echo -e "${GREEN}[INFO]${NC} $1"; }

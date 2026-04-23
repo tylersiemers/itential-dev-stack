@@ -86,6 +86,7 @@ The profile system has two layers that let you run exactly what you need:
 | `LDAP_ENABLED=true` | OpenLDAP |
 | `MCP_ENABLED=true` | MCP Server (LLM integration) |
 | `NETBOX_ENABLED=true` | NetBox (IPAM / network source of truth) |
+| `IAGCTL_CLIENT_ENABLED=true` | iagctl client container |
 | `OPENBAO_ENABLED=true` | OpenBao (secrets management) |
 
 ### Examples
@@ -127,6 +128,7 @@ docker compose --profile full --profile openbao up -d
 | OpenLDAP | localhost:3389 | cn=admin,dc=itential,dc=io / admin |
 | MCP | http://localhost:8000 (SSE) | N/A |
 | NetBox | http://localhost:8002 | admin / admin |
+| iagctl client | N/A (exec only) | `make iagctl-shell` |
 | OpenBao | http://localhost:8200 | Token from `volumes/openbao/init-keys.json` |
 
 > All ports are configurable via `.env` — see [Port Configuration](#port-configuration).
@@ -213,6 +215,8 @@ Different platform images may run as different UIDs. The init container sets log
 | `make login` | Login to AWS ECR |
 | `make clean` | Stop and remove all data (destructive) |
 | `make generate-key` | Generate new encryption key |
+| `make iagctl-shell` | Open a shell in the iagctl client container |
+| `make hello-torero` | Clone hello-torero and import services via iagctl |
 | `make netbox-adapter` | Clone and install the NetBox adapter (requires npm) |
 
 ## 🔑 LDAP Authentication
@@ -328,6 +332,45 @@ make down && make up   # Restart Platform to load the adapter
 ```
 
 Find the adapter at [Itential Automation Marketplace](https://www.itential.com/automation-marketplace/).
+
+## 🖥️ iagctl Client Container
+
+A lightweight container ([debian:bookworm-slim](https://hub.docker.com/_/debian)) pre-configured to run `iagctl` commands against the gateway5 server. Gateway5 is reachable inside the container by its Docker network name — no host/port flags needed.
+
+**Setup (one time):**
+
+```bash
+# drop your iagctl binary into the volume directory
+cp /usr/local/bin/iagctl volumes/iagctl-client/iagctl
+```
+
+**Enable and start:**
+
+```bash
+# add to .env
+IAGCTL_CLIENT_ENABLED=true
+
+make up
+```
+
+**Open a shell:**
+
+```bash
+make iagctl-shell
+# or directly:
+docker exec -it iagctl-client bash
+```
+
+**Inside the container:**
+
+```bash
+iagctl services list
+iagctl db import import.yml
+```
+
+The client config at `volumes/iagctl-client/.gateway.d/gateway.conf` sets `mode = client`, `host = gateway5`, and `use_tls = false`. If you need TLS, drop `ca.pem`, `client.pem`, and `client-key.pem` into `volumes/iagctl-client/.gateway.d/certificates/` and flip `use_tls = true`.
+
+The `iagctl` binary itself is gitignored — only the config is tracked.
 
 ## 🔑 Gateway5 / Gateway Manager
 

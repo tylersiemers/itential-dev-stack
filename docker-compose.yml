@@ -305,21 +305,11 @@ services:
 
       # application
       GATEWAY_APPLICATION_CLUSTER_ID: ${GATEWAY5_CLUSTER_ID:-cluster_1}
-      GATEWAY_APPLICATION_MODE: "server"
+      GATEWAY_APPLICATION_MODE: "local"
       GATEWAY_APPLICATION_WORKING_DIR: "/etc/gateway"
-
-      # gw manager connection
-      GATEWAY_CONNECT_HOSTS: "platform:8080"
-      GATEWAY_CONNECT_CERTIFICATE_FILE: "/etc/ssl/gateway5/gw-manager.pem"
-      GATEWAY_CONNECT_PRIVATE_KEY_FILE: "/etc/ssl/gateway5/gw-manager-key.pem"
-      GATEWAY_CONNECT_INSECURE_TLS: "true"
 
       # logging
       GATEWAY_LOG_LEVEL: ${LOG_LEVEL:-INFO}
-
-      # server
-      GATEWAY_SERVER_USE_TLS: "false"
-      GATEWAY_SERVER_LISTEN_ADDRESS: "gateway5"
     restart: unless-stopped
 
   # ==========================================================================

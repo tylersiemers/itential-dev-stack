@@ -30,6 +30,8 @@
 !/volumes/iagctl-client/.gateway.d/
 /volumes/iagctl-client/.gateway.d/certificates/*
 !/volumes/iagctl-client/.gateway.d/certificates/.gitkeep
+/volumes/iagctl-client/.gateway.d/*.db
+/volumes/iagctl-client/.gateway.d/*.db-*
 
 /volumes/platform/adapters/*
 !/volumes/platform/adapters/.gitkeep

@@ -334,12 +334,13 @@ services:
       - type: bind
         source: ./volumes/iagctl-client
         target: /workspace
+      - type: bind
+        source: ./volumes/iagctl-client/.gateway.d
+        target: /root/.gateway.d
+        read_only: true
     environment:
       # adds /workspace to PATH so iagctl binary is available by name
       PATH: "/workspace:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-      # gateway5 connection defaults (override in .env)
-      GATEWAY5_HOST: gateway5
-      GATEWAY5_PORT: ${GATEWAY5_PORT:-50051}
     working_dir: /workspace
     command: ["sleep", "infinity"]
     restart: unless-stopped

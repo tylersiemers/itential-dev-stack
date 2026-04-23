@@ -19,21 +19,30 @@ log_info()    { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_section() { echo -e "\n${BLUE}--- $1 ---${NC}"; }
 
 api_post() {
-    curl -sf -X POST \
+    local endpoint=$1 payload=$2
+    local response http_code body
+    response=$(curl -s -w "\n__HTTP_CODE__%{http_code}" -X POST \
         -H "Authorization: Token $TOKEN" \
         -H "Content-Type: application/json" \
-        "$NETBOX_URL/api/$1/" -d "$2"
+        "$NETBOX_URL/api/$endpoint/" -d "$payload")
+    http_code=$(echo "$response" | grep '__HTTP_CODE__' | sed 's/__HTTP_CODE__//')
+    body=$(echo "$response" | sed '/__HTTP_CODE__/d')
+    if [[ ! "$http_code" =~ ^2 ]]; then
+        echo -e "\033[0;31m[ERROR]\033[0m POST $endpoint HTTP $http_code: $body" >&2
+        return 1
+    fi
+    echo "$body"
 }
 
 api_patch() {
-    curl -sf -X PATCH \
+    curl -s -X PATCH \
         -H "Authorization: Token $TOKEN" \
         -H "Content-Type: application/json" \
-        "$NETBOX_URL/api/$1/$2/" -d "$3"
+        "$NETBOX_URL/api/$1/$2/" -d "$3" > /dev/null
 }
 
 get_id() {
-    curl -sf -H "Authorization: Token $TOKEN" \
+    curl -s -H "Authorization: Token $TOKEN" \
         "$NETBOX_URL/api/$1/?$2" | jq -r '.results[0].id // empty'
 }
 
